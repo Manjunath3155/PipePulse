@@ -21,6 +21,8 @@ PipePulse is a deterministic RL environment for city water operations where an a
 - preserve service continuity for critical facilities,
 - and contain contamination spread.
 
+Baseline behavior is deterministic for reproducible scoring.
+
 ## Why this is real-world
 
 Utilities handle leaks, isolation valves, and contamination response under budget and SLA pressure. PipePulse models those tradeoffs as a strict OpenEnv environment with deterministic grading.

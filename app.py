@@ -22,7 +22,6 @@ from tasks import list_task_metadata
 
 app = FastAPI(
     title="PipePulse OpenEnv",
-    description="Municipal water leak response environment for OpenEnv Round 1.",
     version="1.0.0",
 )
 
