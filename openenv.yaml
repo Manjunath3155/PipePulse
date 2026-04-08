@@ -1,0 +1,157 @@
+spec_version: 1
+
+name: pipepulse
+version: "2.0.0"
+description: >
+  PipePulse is a deterministic OpenEnv environment for municipal water operations.
+  Agents dispatch repair crews, control isolation valves, and contain contamination
+  while balancing SLA deadlines, service continuity, budget, and fairness.
+
+type: agent_environment
+port: 7860
+
+runtime:
+  language: python
+  version: "3.11"
+  entrypoint: app.py
+  run: "uvicorn app:app --host 0.0.0.0 --port 7860"
+
+observation_space:
+  type: object
+  schema_ref: "models.Observation"
+  fields:
+    - name: task_id
+      type: string
+    - name: tick
+      type: integer
+    - name: max_ticks
+      type: integer
+    - name: budget_remaining
+      type: float
+    - name: total_water_loss
+      type: float
+    - name: sla_breaches
+      type: integer
+    - name: active_leaks
+      type: array
+    - name: crews
+      type: array
+    - name: segments
+      type: array
+    - name: valves
+      type: array
+    - name: next_critical_deadline
+      type: integer
+      nullable: true
+    - name: ward_fairness_gap
+      type: float
+    - name: pressure_risk_index
+      type: float
+    - name: service_outage_units
+      type: float
+    - name: critical_facility_outages
+      type: integer
+    - name: contamination_risk_index
+      type: float
+    - name: contaminated_segments
+      type: integer
+    - name: done
+      type: boolean
+
+action_space:
+  type: object
+  schema_ref: "models.Action"
+  fields:
+    - name: action_type
+      type: string
+      enum:
+        - assign_crew
+        - reroute_crew
+        - hold
+        - open_valve
+        - close_valve
+        - flush_segment
+    - name: crew_id
+      type: string
+      nullable: true
+    - name: leak_id
+      type: string
+      nullable: true
+    - name: mode
+      type: string
+      enum: ["patch", "full_repair", "isolate_line"]
+      nullable: true
+    - name: valve_id
+      type: string
+      nullable: true
+    - name: segment_id
+      type: string
+      nullable: true
+
+reward_space:
+  type: scalar
+  range: [0.0, 1.0]
+  schema_ref: "models.Reward"
+  description: >
+    Reward combines leak resolution, SLA compliance, outage control, critical-facility
+    uptime, contamination control, and fairness, with explicit penalties for invalid or
+    no-progress behaviors.
+
+api:
+  health: "GET /health"
+  reset: "POST /reset"
+  step: "POST /step"
+  state: "GET /state"
+  tasks: "GET /tasks"
+  grade: "GET /grade"
+
+tasks:
+  - id: easy_single_crew
+    difficulty: easy
+    max_steps: 16
+    reward_range: [0.0, 1.0]
+    description: "Single-crew leak response with basic SLA pressure."
+    grader: "grader.grade_episode"
+  - id: medium_valve_tradeoff
+    difficulty: medium
+    max_steps: 22
+    reward_range: [0.0, 1.0]
+    description: "Dispatch + valve isolation tradeoffs for leak control vs service continuity."
+    grader: "grader.grade_episode"
+  - id: hard_burst_fairness_budget
+    difficulty: hard
+    max_steps: 28
+    reward_range: [0.0, 1.0]
+    description: "Burst propagation with fairness and budget pressure under network constraints."
+    grader: "grader.grade_episode"
+  - id: hard_plus_contamination_containment
+    difficulty: hard_plus
+    max_steps: 32
+    reward_range: [0.0, 1.0]
+    description: "Contain contamination spread while handling leaks, outages, and critical uptime."
+    grader: "grader.grade_episode"
+
+evaluation:
+  metrics:
+    - name: completion
+      description: "Resolved leaks / total leaks generated."
+    - name: sla_compliance
+      description: "Fraction of leaks resolved within SLA."
+    - name: outage_control
+      description: "Control of service disruption across demand segments."
+    - name: critical_uptime
+      description: "Continuity of critical facilities under valve decisions."
+    - name: contamination_control
+      description: "Suppression of contamination risk across the network."
+    - name: fairness_score
+      description: "Balance of service outcomes across wards."
+  scoring_formula: >
+    Deterministic task-specific weighted score normalized to [0.0, 1.0].
+
+metadata:
+  tags:
+    - openenv
+    - reinforcement-learning
+    - civic-tech
+    - water-utilities
+    - incident-response
