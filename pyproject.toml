@@ -16,8 +16,12 @@ dependencies = [
   "uvicorn==0.34.0",
   "pydantic==2.11.3",
   "PyYAML==6.0.2",
-  "openai==1.75.0",
+  "openai>=2.7.2",
+  "openenv-core>=0.2.0",
 ]
+
+[project.scripts]
+server = "server.app:main"
 
 [tool.setuptools]
 py-modules = [
@@ -30,3 +34,6 @@ py-modules = [
   "prevalidate",
   "tasks",
 ]
+
+[tool.setuptools.packages.find]
+include = ["server*"]
