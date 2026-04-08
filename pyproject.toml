@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pipepulse-openenv"
+version = "2.0.0"
+description = "PipePulse OpenEnv environment for municipal water operations."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "Manjunath Patil", email = "manjunathpatil3155@gmail.com" }
+]
+dependencies = [
+  "fastapi==0.115.12",
+  "uvicorn==0.34.0",
+  "pydantic==2.11.3",
+  "PyYAML==6.0.2",
+  "openai==1.75.0",
+]
+
+[tool.setuptools]
+py-modules = [
+  "app",
+  "client",
+  "environment",
+  "grader",
+  "inference",
+  "models",
+  "prevalidate",
+  "tasks",
+]
