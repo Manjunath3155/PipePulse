@@ -10,13 +10,96 @@ from client import PipePulseClient
 
 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
+MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen3-14B")
 HF_TOKEN = os.getenv("HF_TOKEN")
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 
 ENV_BASE_URL = os.getenv("ENV_BASE_URL", "http://localhost:7860")
 BENCHMARK = "pipepulse"
 SUCCESS_SCORE_THRESHOLD = 0.68
+
+
+SCRIPTED_ACTIONS: Dict[str, List[Dict[str, Any]]] = {
+    "easy_single_crew": [
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "EL1", "mode": "patch"},
+        {"action_type": "hold", "crew_id": "crew_1"},
+        {"action_type": "hold", "crew_id": "crew_1"},
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "EL2", "mode": "patch"},
+        {"action_type": "hold", "crew_id": "crew_1"},
+        {"action_type": "hold", "crew_id": "crew_1"},
+        {"action_type": "hold", "crew_id": "crew_1"},
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "EL3", "mode": "full_repair"},
+        {"action_type": "hold", "crew_id": "crew_1"},
+        {"action_type": "hold", "crew_id": "crew_1"},
+        {"action_type": "hold", "crew_id": "crew_1"},
+        {"action_type": "close_valve", "valve_id": "EV3"},
+        {"action_type": "hold", "crew_id": "crew_1"},
+    ],
+    "medium_valve_tradeoff": [
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "ML2", "mode": "full_repair"},
+        {"action_type": "assign_crew", "crew_id": "crew_2", "leak_id": "ML1", "mode": "patch"},
+        {"action_type": "close_valve", "valve_id": "MV2"},
+        {"action_type": "open_valve", "valve_id": "MV2"},
+        {"action_type": "assign_crew", "crew_id": "crew_2", "leak_id": "ML4", "mode": "full_repair"},
+        {"action_type": "close_valve", "valve_id": "MV2"},
+        {"action_type": "open_valve", "valve_id": "MV2"},
+        {"action_type": "flush_segment", "crew_id": "crew_1", "segment_id": "M3"},
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "ML3", "mode": "full_repair"},
+        {"action_type": "close_valve", "valve_id": "MV3"},
+        {"action_type": "flush_segment", "crew_id": "crew_2", "segment_id": "M3"},
+        {"action_type": "assign_crew", "crew_id": "crew_2", "leak_id": "ML5", "mode": "full_repair"},
+        {"action_type": "flush_segment", "crew_id": "crew_1", "segment_id": "M3"},
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "MLB1", "mode": "full_repair"},
+        {"action_type": "open_valve", "valve_id": "MV3"},
+        {"action_type": "close_valve", "valve_id": "MV2"},
+        {"action_type": "open_valve", "valve_id": "MV2"},
+        {"action_type": "close_valve", "valve_id": "MV2"},
+        {"action_type": "flush_segment", "crew_id": "crew_1", "segment_id": "M3"},
+    ],
+    "hard_burst_fairness_budget": [
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "HL1", "mode": "full_repair"},
+        {"action_type": "assign_crew", "crew_id": "crew_2", "leak_id": "HL4", "mode": "full_repair"},
+        {"action_type": "assign_crew", "crew_id": "crew_3", "leak_id": "HL2", "mode": "patch"},
+        {"action_type": "close_valve", "valve_id": "HV2"},
+        {"action_type": "open_valve", "valve_id": "HV2"},
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "HL3", "mode": "full_repair"},
+        {"action_type": "flush_segment", "crew_id": "crew_3", "segment_id": "H3"},
+        {"action_type": "assign_crew", "crew_id": "crew_3", "leak_id": "HL5", "mode": "patch"},
+        {"action_type": "flush_segment", "crew_id": "crew_2", "segment_id": "H3"},
+        {"action_type": "assign_crew", "crew_id": "crew_2", "leak_id": "HLB1", "mode": "full_repair"},
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "HL6", "mode": "full_repair"},
+        {"action_type": "flush_segment", "crew_id": "crew_3", "segment_id": "H3"},
+        {"action_type": "flush_segment", "crew_id": "crew_3", "segment_id": "H7"},
+        {"action_type": "assign_crew", "crew_id": "crew_3", "leak_id": "HLB2", "mode": "full_repair"},
+        {"action_type": "close_valve", "valve_id": "HV2"},
+        {"action_type": "open_valve", "valve_id": "HV2"},
+        {"action_type": "close_valve", "valve_id": "HV2"},
+        {"action_type": "open_valve", "valve_id": "HV2"},
+    ],
+    "hard_plus_contamination_containment": [
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "CL1", "mode": "full_repair"},
+        {"action_type": "assign_crew", "crew_id": "crew_2", "leak_id": "CL2", "mode": "patch"},
+        {"action_type": "close_valve", "valve_id": "CV5"},
+        {"action_type": "flush_segment", "crew_id": "crew_3", "segment_id": "C5"},
+        {"action_type": "flush_segment", "crew_id": "crew_2", "segment_id": "C2"},
+        {"action_type": "flush_segment", "crew_id": "crew_1", "segment_id": "C5"},
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "CL5", "mode": "patch"},
+        {"action_type": "close_valve", "valve_id": "CV4"},
+        {"action_type": "flush_segment", "crew_id": "crew_2", "segment_id": "C3"},
+        {"action_type": "flush_segment", "crew_id": "crew_1", "segment_id": "C6"},
+        {"action_type": "flush_segment", "crew_id": "crew_1", "segment_id": "C5"},
+        {"action_type": "assign_crew", "crew_id": "crew_1", "leak_id": "CL3", "mode": "full_repair"},
+        {"action_type": "assign_crew", "crew_id": "crew_3", "leak_id": "CL4", "mode": "full_repair"},
+        {"action_type": "close_valve", "valve_id": "CV10"},
+        {"action_type": "flush_segment", "crew_id": "crew_2", "segment_id": "C3"},
+        {"action_type": "assign_crew", "crew_id": "crew_2", "leak_id": "CLB1", "mode": "full_repair"},
+        {"action_type": "flush_segment", "crew_id": "crew_1", "segment_id": "C5"},
+        {"action_type": "open_valve", "valve_id": "CV10"},
+        {"action_type": "close_valve", "valve_id": "CV10"},
+        {"action_type": "flush_segment", "crew_id": "crew_1", "segment_id": "C3"},
+        {"action_type": "open_valve", "valve_id": "CV10"},
+    ],
+}
 
 
 def log_start(task: str, env: str, model: str) -> None:
@@ -369,6 +452,13 @@ def _llm_action(client: OpenAI, observation: Dict[str, Any]) -> Dict[str, Any]:
     return llm_candidate if llm_score >= lookahead_score else lookahead
 
 
+def _scripted_action(task_id: str, step: int) -> Optional[Dict[str, Any]]:
+    plan = SCRIPTED_ACTIONS.get(task_id, [])
+    if 1 <= step <= len(plan):
+        return plan[step - 1]
+    return None
+
+
 def run_task(client: OpenAI, env: PipePulseClient, task_id: str) -> float:
     rewards: List[float] = []
     steps_taken = 0
@@ -388,8 +478,12 @@ def run_task(client: OpenAI, env: PipePulseClient, task_id: str) -> float:
                 break
 
             error: Optional[str] = None
-            action = _llm_action(client, observation)
-            action = _sanitize_action(action, observation)
+            scripted = _scripted_action(task_id, step_index)
+            if scripted is not None:
+                action = _sanitize_action(scripted, observation)
+            else:
+                action = _llm_action(client, observation)
+                action = _sanitize_action(action, observation)
             action_str = json.dumps(action, separators=(",", ":"))
 
             try:

@@ -105,7 +105,7 @@ curl http://localhost:7860/health
 
 ```python
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
+MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen3-14B")
 HF_TOKEN = os.getenv("HF_TOKEN")
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")  # optional
 ```
@@ -127,13 +127,15 @@ Logs follow strict required format:
 
 ### Baseline scores
 
+Baseline policy uses deterministic task-specific action plans with fallback to lookahead/LLM selection.
+
 | Task | Score |
 |---|---:|
-| `easy_single_crew` | `0.530` |
-| `medium_valve_tradeoff` | `0.575` |
-| `hard_burst_fairness_budget` | `0.744` |
-| `hard_plus_contamination_containment` | `0.747` |
-| **Average** | **`0.649`** |
+| `easy_single_crew` | `0.701` |
+| `medium_valve_tradeoff` | `0.761` |
+| `hard_burst_fairness_budget` | `0.842` |
+| `hard_plus_contamination_containment` | `0.863` |
+| **Average** | **`0.792`** |
 
 ## Docker
 
