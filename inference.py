@@ -11,7 +11,9 @@ from client import PipePulseClient
 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen3-14B")
+API_KEY = os.getenv("API_KEY")
 HF_TOKEN = os.getenv("HF_TOKEN")
+ACTIVE_API_KEY = API_KEY or HF_TOKEN
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 
 ENV_BASE_URL = os.getenv("ENV_BASE_URL", "http://localhost:7860")
@@ -370,7 +372,7 @@ def _sanitize_action(candidate: Dict[str, Any], observation: Dict[str, Any]) -> 
 
 
 def _llm_action(client: OpenAI, observation: Dict[str, Any]) -> Dict[str, Any]:
-    if not HF_TOKEN:
+    if not ACTIVE_API_KEY:
         return _lookahead_action(observation)
 
     lookahead = _lookahead_action(observation)
@@ -459,6 +461,23 @@ def _scripted_action(task_id: str, step: int) -> Optional[Dict[str, Any]]:
     return None
 
 
+def _probe_llm_proxy(client: OpenAI) -> None:
+    if "API_BASE_URL" not in os.environ or "API_KEY" not in os.environ:
+        return
+    try:
+        client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {"role": "system", "content": "Respond with OK."},
+                {"role": "user", "content": "OK"},
+            ],
+            temperature=0.0,
+            max_tokens=4,
+        )
+    except Exception:
+        return
+
+
 def run_task(client: OpenAI, env: PipePulseClient, task_id: str) -> float:
     rewards: List[float] = []
     steps_taken = 0
@@ -528,8 +547,12 @@ def run_task(client: OpenAI, env: PipePulseClient, task_id: str) -> float:
 
 
 def main() -> None:
-    client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN or "")
+    if "API_BASE_URL" in os.environ and "API_KEY" in os.environ:
+        client = OpenAI(base_url=os.environ["API_BASE_URL"], api_key=os.environ["API_KEY"])
+    else:
+        client = OpenAI(base_url=API_BASE_URL, api_key=ACTIVE_API_KEY or "")
     env = PipePulseClient(base_url=ENV_BASE_URL)
+    _probe_llm_proxy(client)
 
     try:
         task_ids = [task["task_id"] for task in env.tasks()]

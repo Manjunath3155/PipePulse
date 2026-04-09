@@ -108,12 +108,13 @@ curl http://localhost:7860/health
 ```python
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen3-14B")
+API_KEY = os.getenv("API_KEY")
 HF_TOKEN = os.getenv("HF_TOKEN")
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")  # optional
 ```
 
 - Defaults only for `API_BASE_URL` and `MODEL_NAME`
-- `HF_TOKEN` has no default
+- `API_KEY` is preferred in validator/runtime; `HF_TOKEN` remains local fallback
 - LLM calls use `from openai import OpenAI`
 
 Run:
